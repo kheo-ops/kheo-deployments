@@ -3,35 +3,9 @@
 
 ====
 ## Overview
-Kheo is an agentless application dedicated to servers management, including softwares inventory, os and network informations. It performs connections in background in order to generate events that represent changes on servers (differences since the last connection).
+This repository contains some deployments sample for Kheo application. 
 
-In addition, it will discover routes between servers and display them as a graph in the web ui.
-
-Kheo relies on SSH to communicate with the servers to manage so it does not need any specific configuration. As a constraint, it needs a key to contact remote hosts.
-
-To register servers, you have many solutions:
-- Using an inventory file just like Ansible does.
-- Using the API
-- Using the webapp
-
-Once your servers have been registered, you can obtain informations like:
-- Network interfaces, IPs and routes
-- OS type and version
-- Users
-- Resources (ram, disk, cpu, ...)
-- Running processes
-- Installed packages
-
-Moreover, Kheo discovers your servers configuration at regular intervals and stores delta between configuration as events. You can select events you want to store and those that do not have interest for you.
-
-### Components
-Kheo is separated into two components :
-- An API, that is available at 
-- A webapp, that is available at
-
-Moreover, Kheo functionalities are provided by plugins. Some of them are available at . You can develop your own plugin taking inspiration from these ones.
-
-### Running
+### Docker
 Run application layers in docker containers:
 
 The database must be run first.
@@ -49,10 +23,11 @@ The web frontend container linked to the `kheo-api` container
 docker run -d -p 8000:80 -v ${PWD}/kheo-web/dist:/var/www/html --name kheo-web --link kheo-api:kheo-api dockerfile/nginx
 ```
 
+### Fig / Docker compose
 To make it easier to use, there is a fig config file that let you start each layer inside a container:
-```sudo fig up -d```
+```sudo fig up -d``` (Run this command in the directory containing fig.yml)
 
-## Deployment
+### Ansible
 Kheo comes with sample Ansible playbooks that deploys components through your machines.
 
 There are sample playbooks for those topologies:
