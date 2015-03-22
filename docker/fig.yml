@@ -16,5 +16,3 @@ web:
     - 80:80
     volumes:
     - kheo-web/dist:/var/www/html
-    links:
-    - api
