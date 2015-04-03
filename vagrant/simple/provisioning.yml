@@ -49,29 +49,37 @@
     nginx_http_params:
     - access_log /var/log/nginx/access.log
     nginx_sites:
-      foo:
-      - listen 80
-      - server_name localhost
-      - root /usr/share/nginx/html
-      - location / { try_files $uri $uri/ /index.html; }
+      kheo:
+      - listen 192.168.0.7:80
+      - server_name kheo      
+      - access_log /var/log/nginx/kheo.access.log
+      - error_log /var/log/nginx/kheo.error.log
+      - location /kheo { 
+          root /tmp/kheo-web/;          
+        }
   tasks:
   - name: Download latest kheo web release
     get_url:
-      url: "https://github.com/kheo-ops/kheo-web/releases/download/0.3.0/kheo-web.tar.gz"
-      dest: "/tmp/kheo-web.tar.gz"
+      url: https://github.com/kheo-ops/kheo-web/releases/download/0.3.0/kheo-web.tar.gz
+      dest: /tmp/kheo-web.tar.gz
 
   - name: Stats on kheo web destination directory
     stat:
-      path: "/tmp/kheo-web"
+      path: /tmp/kheo-web
     register: stat_kheo_web_dir
 
   - name: Ensure kheo-web directory exists
     file:
-      path: /tmp/kheo-web
-      state: directory    
+      path: /tmp/kheo-web/kheo
+      state: directory
+      recurse: yes
 
   - name: Unarchive kheo-web tarball
     unarchive:
-      src: "/tmp/kheo-web.tar.gz"
-      dest: "/tmp/kheo-web"
-    when: stat_kheo_web_dir.stat.exists == False
+      src: /tmp/kheo-web.tar.gz
+      dest: /tmp/kheo-web/kheo/
+      copy: no
+
+  - service:
+      name: nginx
+      state: restarted

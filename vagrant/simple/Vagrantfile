@@ -38,6 +38,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "ansible" do |ansible| 
       ansible.playbook = "provisioning.yml"
       ansible.sudo = true
-      ansible.inventory_path = "inventory"      
+      ansible.inventory_path = "inventory"
   end
 end
