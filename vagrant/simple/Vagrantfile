@@ -35,4 +35,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.provision "shell", inline: 'cat /vagrant/key.pub >> /root/.ssh/authorized_keys'
+  config.vm.provision "ansible" do |ansible| 
+      ansible.playbook = "provisioning.yml"
+      ansible.sudo = true
+      ansible.inventory_path = "inventory"      
+  end
 end

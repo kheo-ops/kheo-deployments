@@ -3,26 +3,75 @@
   - name: Update apt
     command: apt-get update
 
+
 - hosts: kheo-db
   roles:
-    - role: bennojoy.mongo_mongod
-      mongod_datadir_prefix: "/data/"
-      mongod_replication: false
-      mongod_port: 27017
+  - role: bennojoy.mongo_mongod
+    mongod_datadir_prefix: "/data/"
+    mongod_replication: false
+    mongod_port: 27017
+
 
 - hosts: kheo-api
   roles:
-    - role: ANXS.oracle-jdk
-      oracle_jdk_java_version_default: 7
+  - role: ANXS.oracle-jdk
+    oracle_jdk_java_version_default: 7
+  tasks:
+  - name: Download latest kheo api release
+    get_url:
+      url: "https://github.com/kheo-ops/kheo-core/releases/download/0.3.0/kheo-api.jar"
+      dest: "/tmp/kheo-api.jar"
+    register: download_kheo
+
+  - name: Add kheo api configuration try_files
+    copy:
+      src: kheo-config.yml
+      dest: /tmp/kheo-config.yml
+    register: create_kheo_configuration
+
+  - name: Check kheo process presence
+    shell: ps aux | grep -v grep | grep kheo-api | wc -l
+    ignore_errors: True
+    register: kheo_process_presence
+
+  - name: Kill old kheo processes
+    shell: kill $(ps aux | grep -v grep | grep kheo-api | awk '{ print $2 }')
+    when: kheo_process_presence.stdout|int > 0 and (download_kheo.changed or create_kheo_configuration.changed)
+
+
+  - name: Start kheo api
+    shell: nohup java -jar /tmp/kheo-api.jar server /tmp/kheo-config.yml 1>/tmp/kheo.log 2>&1 &
+    when: download_kheo.changed or create_kheo_configuration.changed
 
 - hosts: kheo-web
   roles:
-    - role: jdauphant.nginx
-      nginx_http_params:
-      - access_log /var/log/nginx/access.log
-      nginx_sites:
-        foo:
-        - listen 80
-        - server_name localhost
-        - root /usr/share/nginx/html
-        - location / { try_files $uri $uri/ /index.html; }
+  - role: jdauphant.nginx
+    nginx_http_params:
+    - access_log /var/log/nginx/access.log
+    nginx_sites:
+      foo:
+      - listen 80
+      - server_name localhost
+      - root /usr/share/nginx/html
+      - location / { try_files $uri $uri/ /index.html; }
+  tasks:
+  - name: Download latest kheo web release
+    get_url:
+      url: "https://github.com/kheo-ops/kheo-web/releases/download/0.3.0/kheo-web.tar.gz"
+      dest: "/tmp/kheo-web.tar.gz"
+
+  - name: Stats on kheo web destination directory
+    stat:
+      path: "/tmp/kheo-web"
+    register: stat_kheo_web_dir
+
+  - name: Ensure kheo-web directory exists
+    file:
+      path: /tmp/kheo-web
+      state: directory    
+
+  - name: Unarchive kheo-web tarball
+    unarchive:
+      src: "/tmp/kheo-web.tar.gz"
+      dest: "/tmp/kheo-web"
+    when: stat_kheo_web_dir.stat.exists == False

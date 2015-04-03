@@ -42,3 +42,4 @@ sudo ansible-galaxy install ANXS.oracle-jdk
 ansible-playbook -i inventory kheo.yml --private-key=key
 ```
 
+Or simply spawn vagrant VMs with `vagrant up` in a directory containing a Vagrantfile.
